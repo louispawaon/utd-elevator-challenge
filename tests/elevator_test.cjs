@@ -11,6 +11,7 @@ describe('Elevator', function() {
 
   beforeEach(function() {
     elevator.reset();
+    elevator.checkReturnToLoby = Elevator.prototype.checkReturnToLoby.bind(elevator);
   });
 
   it('should bring a rider to a floor above their current floor', () => {
@@ -190,5 +191,39 @@ describe('Elevator', function() {
     assert.equal(elevator.floorsTraversed, 0)
     assert.equal(elevator.requests.length, 0)
     assert.equal(elevator.riders.length, 0)
+  })
+
+  describe('Level 3 - efficiency metrics', function() {
+    it('accumulates floorsTraversed and stops across trips until reset', () => {
+      elevator.checkReturnToLoby = () => false
+      const first = { name: 'A', currentFloor: 2, dropOffFloor: 5 }
+      elevator.requests.push(first)
+      elevator.goToFloor(first)
+      assert.equal(elevator.floorsTraversed, 5)
+      assert.equal(elevator.stops, 2)
+
+      const second = { name: 'B', currentFloor: 5, dropOffFloor: 6 }
+      elevator.requests.push(second)
+      elevator.goToFloor(second)
+      assert.equal(elevator.floorsTraversed, 6)
+      assert.equal(elevator.stops, 3)
+    })
+
+    it('uses fewer floorsTraversed for a shorter ride from the same pickup floor', () => {
+      elevator.checkReturnToLoby = () => false
+      const shortTrip = new Person('Short', 2, 3)
+      elevator.requests.push(shortTrip)
+      elevator.goToFloor(shortTrip)
+      const shortFloors = elevator.floorsTraversed
+
+      elevator.reset()
+      elevator.checkReturnToLoby = () => false
+      const longTrip = new Person('Long', 2, 10)
+      elevator.requests.push(longTrip)
+      elevator.goToFloor(longTrip)
+      const longFloors = elevator.floorsTraversed
+
+      assert.isBelow(shortFloors, longFloors)
+    })
   })
 });

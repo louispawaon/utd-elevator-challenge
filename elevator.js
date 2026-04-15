@@ -1,7 +1,9 @@
 export default class Elevator {
   constructor() {
     this.currentFloor = 0
+    /** Total pickup/dropoff stops this session; resets with {@link Elevator#reset}. */
     this.stops = 0
+    /** Total one-floor moves; fewer means a more efficient run for the same work. Resets with {@link Elevator#reset}. */
     this.floorsTraversed = 0
     this.requests = []
     this.riders= []
