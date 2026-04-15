@@ -8,15 +8,71 @@ export default class Elevator {
   }
 
   dispatch(){
-    this.requests.forEach(request => {
-      if(this.riders.length || this.requests.length){
-        this.goToFloor(request)
+    let direction = null
+
+    const hasFloorsAbove = () => {
+      const requestAbove = this.requests.some(request => request.currentFloor > this.currentFloor)
+      const riderAbove = this.riders.some(rider => rider.dropOffFloor > this.currentFloor)
+      return requestAbove || riderAbove
+    }
+
+    const hasFloorsBelow = () => {
+      const requestBelow = this.requests.some(request => request.currentFloor < this.currentFloor)
+      const riderBelow = this.riders.some(rider => rider.dropOffFloor < this.currentFloor)
+      return requestBelow || riderBelow
+    }
+
+    while (this.requests.length || this.riders.length) {
+      if (!direction) {
+        if (this.riders.length) {
+          direction = this.riders[0].dropOffFloor >= this.currentFloor ? 'up' : 'down'
+        } else if (this.requests.length) {
+          direction = this.requests[0].currentFloor >= this.currentFloor ? 'up' : 'down'
+        }
       }
-    })
+
+      if (direction === 'up' && !hasFloorsAbove() && hasFloorsBelow()) {
+        direction = 'down'
+      } else if (direction === 'down' && !hasFloorsBelow() && hasFloorsAbove()) {
+        direction = 'up'
+      }
+
+      if (direction === 'up') {
+        this.moveUp()
+      } else if (direction === 'down') {
+        this.moveDown()
+      }
+    }
+
+    if (this.checkReturnToLoby()) {
+      this.returnToLoby()
+    }
   }
 
   goToFloor(person){  
-    // add your code here
+    while (this.currentFloor < person.currentFloor) {
+      this.moveUp()
+    }
+
+    while (this.currentFloor > person.currentFloor) {
+      this.moveDown()
+    }
+
+    this.hasPickup()
+
+    while (this.currentFloor < person.dropOffFloor) {
+      this.moveUp()
+    }
+
+    while (this.currentFloor > person.dropOffFloor) {
+      this.moveDown()
+    }
+
+    this.hasDropoff()
+
+    if (this.checkReturnToLoby()) {
+      this.returnToLoby()
+    }
   }
 
   moveUp(){
@@ -24,6 +80,8 @@ export default class Elevator {
     this.floorsTraversed++
     if(this.hasStop()){
       this.stops++
+      this.hasPickup()
+      this.hasDropoff()
     }    
   }
 
@@ -33,24 +91,33 @@ export default class Elevator {
       this.floorsTraversed++
       if(this.hasStop()){
         this.stops++
+        this.hasPickup()
+        this.hasDropoff()
       }
     }
   }
 
   hasStop(){
-    // add your code here
+    const pickupStop = this.requests.some(request => request.currentFloor === this.currentFloor)
+    const dropoffStop = this.riders.some(rider => rider.dropOffFloor === this.currentFloor)
+
+    return pickupStop || dropoffStop
   }
 
   hasPickup(){
-    // add your code here
+    const pickupRequests = this.requests.filter(request => request.currentFloor === this.currentFloor)
+
+    pickupRequests.forEach(request => this.riders.push(request))
+    this.requests = this.requests.filter(request => request.currentFloor !== this.currentFloor)
   }
 
   hasDropoff(){
-    // add your code here
+    this.riders = this.riders.filter(rider => rider.dropOffFloor !== this.currentFloor)
   }
 
   checkReturnToLoby(){
-    // add your code here
+    const beforeNoon = new Date().getHours() < 12
+    return beforeNoon && !this.riders.length
   }
 
   returnToLoby(){
