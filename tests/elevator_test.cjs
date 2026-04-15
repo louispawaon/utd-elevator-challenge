@@ -15,30 +15,39 @@ describe('Elevator', function() {
 
   it('should bring a rider to a floor above their current floor', () => {
     let mockUser = { name: "Brittany", currentFloor: 2, dropOffFloor: 5 };
+    elevator.checkReturnToLoby = () => false
     elevator.requests.push(mockUser)
     elevator.goToFloor(mockUser);
 
-    //check if the elevator automatically  returns to the loby and set the end values
-    const endFloor = elevator.checkReturnToLoby() ? 0 : 5
-    const floorsTraversed = elevator.checkReturnToLoby() ? 10 : 5
-
-    assert.equal(elevator.currentFloor, endFloor);
-    assert.equal(elevator.floorsTraversed, floorsTraversed)
+    assert.equal(elevator.currentFloor, 5);
+    assert.equal(elevator.floorsTraversed, 5)
     assert.equal(elevator.stops, 2)
   });
 
   it('should bring a rider to a floor below their current floor', () => {
     let mockUser = { name: "Brittany", currentFloor: 8, dropOffFloor: 3 };
+    elevator.checkReturnToLoby = () => false
     elevator.requests.push(mockUser)
     elevator.goToFloor(mockUser);
 
-    const endFloor = elevator.checkReturnToLoby() ? 0 : 3
-    const floorsTraversed = elevator.checkReturnToLoby() ? 16 : 13
-
-    assert.equal(elevator.currentFloor, endFloor);
-    assert.equal(elevator.floorsTraversed, floorsTraversed)
+    assert.equal(elevator.currentFloor, 3);
+    assert.equal(elevator.floorsTraversed, 13)
     assert.equal(elevator.stops, 2)
   });
+
+  it('dispatch should process a queued request end-to-end', () => {
+    const request = new Person('Nora', 2, 4)
+    elevator.checkReturnToLoby = () => false
+    elevator.requests.push(request)
+
+    elevator.dispatch()
+
+    assert.equal(elevator.currentFloor, 4)
+    assert.equal(elevator.stops, 2)
+    assert.equal(elevator.floorsTraversed, 4)
+    assert.equal(elevator.requests.length, 0)
+    assert.equal(elevator.riders.length, 0)
+  })
 
   it('The moveUp function should move the elevator up once',() => {
     const nextFloor = elevator.currentFloor + 1
@@ -152,9 +161,34 @@ describe('Elevator', function() {
   
   it('should check if the elevator must return to the loby when there are no riders and the time is earlier than 12PM', () => {
     elevator.currentFloor = 5
+    elevator.riders = []
+    const expected = new Date().getHours() < 12
 
-    if(new Date().getHours() < 12 && !elevator.riders.length){
-      assert.equal(elevator.checkReturnToLoby(), true)
-    }
+    assert.equal(elevator.checkReturnToLoby(), expected)
+  })
+
+  it('returnToLoby should move elevator back to floor zero', () => {
+    elevator.currentFloor = 4
+
+    elevator.returnToLoby()
+
+    assert.equal(elevator.currentFloor, 0)
+    assert.equal(elevator.floorsTraversed, 4)
+  })
+
+  it('reset should clear elevator state counters and collections', () => {
+    elevator.currentFloor = 7
+    elevator.stops = 3
+    elevator.floorsTraversed = 11
+    elevator.requests = [new Person('Sam', 1, 5)]
+    elevator.riders = [new Person('Kai', 3, 6)]
+
+    elevator.reset()
+
+    assert.equal(elevator.currentFloor, 0)
+    assert.equal(elevator.stops, 0)
+    assert.equal(elevator.floorsTraversed, 0)
+    assert.equal(elevator.requests.length, 0)
+    assert.equal(elevator.riders.length, 0)
   })
 });

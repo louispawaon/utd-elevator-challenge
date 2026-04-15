@@ -130,6 +130,7 @@ export default class Elevator {
     this.currentFloor = 0
     this.stops = 0
     this.floorsTraversed = 0
+    this.requests = []
     this.riders = []
   }
 }
