@@ -90,8 +90,13 @@ export default class Elevator {
     this.riders = this.riders.filter(rider => rider.dropOffFloor !== this.currentFloor)
   }
 
+  /** Wall-clock hour (0–23); override in tests. Level 6: before noon return to lobby when idle; after noon stay at last dropoff. */
+  getHour() {
+    return new Date().getHours()
+  }
+
   checkReturnToLoby(){
-    const beforeNoon = new Date().getHours() < 12
+    const beforeNoon = this.getHour() < 12
     return beforeNoon && !this.riders.length && !this.requests.length
   }
 

@@ -12,6 +12,7 @@ describe('Elevator', function() {
   beforeEach(function() {
     elevator.reset();
     elevator.checkReturnToLoby = Elevator.prototype.checkReturnToLoby.bind(elevator);
+    elevator.getHour = Elevator.prototype.getHour.bind(elevator);
   });
 
   it('should bring a rider to a floor above their current floor', () => {
@@ -182,6 +183,36 @@ describe('Elevator', function() {
       assert.equal(elevator.currentFloor, 2)
       assert.equal(elevator.floorsTraversed, 16)
       assert.equal(elevator.stops, 4)
+      assert.equal(elevator.requests.length, 0)
+      assert.equal(elevator.riders.length, 0)
+    })
+  })
+
+  describe('Level 6 - Lobby vs Stay when idle', function() {
+    it('before noon: returns to lobby when idle after a trip', () => {
+      elevator.getHour = () => 9
+      elevator.checkReturnToLoby = Elevator.prototype.checkReturnToLoby.bind(elevator)
+      const rider = new Person('Pat', 2, 4)
+      elevator.requests.push(rider)
+
+      elevator.dispatch()
+
+      assert.equal(elevator.currentFloor, 0)
+      assert.equal(elevator.floorsTraversed, 8)
+      assert.equal(elevator.requests.length, 0)
+      assert.equal(elevator.riders.length, 0)
+    })
+
+    it('after noon: stays at last dropoff floor when idle', () => {
+      elevator.getHour = () => 14
+      elevator.checkReturnToLoby = Elevator.prototype.checkReturnToLoby.bind(elevator)
+      const rider = new Person('Pat', 2, 4)
+      elevator.requests.push(rider)
+
+      elevator.dispatch()
+
+      assert.equal(elevator.currentFloor, 4)
+      assert.equal(elevator.floorsTraversed, 4)
       assert.equal(elevator.requests.length, 0)
       assert.equal(elevator.riders.length, 0)
     })
