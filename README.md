@@ -115,3 +115,58 @@ curl -s -X POST http://localhost:3000/api/requests -H 'Content-Type: application
 curl -s -X POST http://localhost:3000/api/simulate -H 'Content-Type: application/json' \
   -d '{"mode":"fifo","useLobbyClock":false}'
 ```
+#### Architecture
+
+```mermaid
+flowchart LR
+  U[User] --> UI["Browser UI<br/>index.html, app.js"]
+  UI --> API["api-client.js"]
+
+  API --> RQ["/api/requests"]
+  API --> RD["/api/riders"]
+  API --> SIM["/api/simulate"]
+  API --> RST["/api/reset"]
+
+  subgraph Server["Express — web-app/server/index.js"]
+    RQ --> STORE[("store.js")]
+    RD --> STORE
+    RST --> STORE
+    SIM --> RUN["simulation.js"]
+    RUN --> E["Elevator + Person"]
+    E --> TL["steps snapshots"]
+    TL --> STORE
+  end
+
+  TL --> UI
+  UI --> RENDER["render.js"]
+  RENDER --> SHAFT["Shaft, metrics, queues"]
+```
+
+```mermaid
+sequenceDiagram
+  participant User
+  participant UI as app.js
+  participant API as Express API
+  participant Store as store.js
+  participant Sim as simulation.js
+  participant Elevator as Elevator engine
+
+  User->>UI: Add request
+  UI->>API: POST /api/requests
+  API->>Store: createRequest
+  Store-->>API: request row
+  API-->>UI: 201 Created
+
+  User->>UI: Run FIFO or efficient
+  UI->>API: POST /api/simulate
+  API->>Store: listRequests, listRiders
+  API->>Sim: runSimulation
+  Sim->>Elevator: dispatch or dispatchEfficient
+  Elevator-->>Sim: onStep snapshots
+  Sim-->>API: steps
+  API->>Store: syncFromSnapshot last step
+  API-->>UI: steps
+
+  UI->>UI: setTimeline, playback
+  UI->>UI: renderFull per snapshot
+```
