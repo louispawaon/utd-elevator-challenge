@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Elevator Simulation</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <h1>Elevator visualization</h1>
+      <p class="tagline">
+        DOM view of the elevator; requests and riders are stored on the server API. Run FIFO
+        (<code>dispatch</code>) or efficient (<code>dispatchEfficient</code>) via <code>POST /api/simulate</code> and scrub
+        the timeline.
+      </p>
+    </header>
+
+    <div class="app-shell">
+      <div class="main-stage" aria-label="Simulation">
+        <div class="stage-inner">
+          <p class="stage-label">Simulation</p>
+          <section class="panel panel--stage shaft-panel" aria-label="Building and elevator">
+            <h2 class="panel-title">Building</h2>
+            <div id="shaft-root" class="shaft-root"></div>
+          </section>
+        </div>
+      </div>
+
+      <aside class="sidebar" aria-label="Controls and state">
+        <div class="sidebar-inner">
+          <section class="sidebar-section">
+            <h2 class="sidebar-heading">State</h2>
+            <dl class="metrics" id="metrics">
+              <div><dt>Current floor</dt><dd id="metric-floor">—</dd></div>
+              <div><dt>Stops</dt><dd id="metric-stops">—</dd></div>
+              <div><dt>Floors traversed</dt><dd id="metric-traversed">—</dd></div>
+              <div><dt>Timeline</dt><dd id="metric-timeline">—</dd></div>
+            </dl>
+          </section>
+
+          <section class="sidebar-section">
+            <h2 class="sidebar-heading">Queues</h2>
+            <div class="queues">
+              <div>
+                <h3>Requests (waiting)</h3>
+                <ul id="list-requests" class="person-list"></ul>
+              </div>
+              <div>
+                <h3>Riders (in car)</h3>
+                <ul id="list-riders" class="person-list"></ul>
+              </div>
+            </div>
+          </section>
+
+          <section class="sidebar-section">
+            <h2 class="sidebar-heading">Manual</h2>
+            <form id="form-add" class="form-add">
+              <label>
+                Name
+                <input type="text" id="input-name" value="Guest" maxlength="32" required />
+              </label>
+              <label>
+                Pickup floor
+                <input type="number" id="input-pickup" min="0" value="2" required />
+              </label>
+              <label>
+                Drop-off floor
+                <input type="number" id="input-dropoff" min="0" value="5" required />
+              </label>
+              <button type="submit" class="btn primary">Add request</button>
+            </form>
+            <div class="btn-row">
+              <button type="button" id="btn-clear-queue" class="btn">Clear pending requests</button>
+            </div>
+          </section>
+
+          <section class="sidebar-section">
+            <h2 class="sidebar-heading">Run</h2>
+            <div class="btn-row wrap">
+              <button type="button" id="btn-run-fifo" class="btn primary">Run FIFO (<code>dispatch</code>)</button>
+              <button type="button" id="btn-run-efficient" class="btn primary">Run efficient (<code>dispatchEfficient</code>)</button>
+              <button type="button" id="btn-reset" class="btn danger">Reset elevator</button>
+            </div>
+            <p class="hint">
+              Time-of-day behavior: simulations force <code>checkReturnToLoby → false</code> so the car does not return to
+              lobby unless you toggle below.
+            </p>
+            <label class="checkbox-row">
+              <input type="checkbox" id="chk-noon-behavior" />
+              Use real clock for return-to-lobby (before noon → floor 0 when idle)
+            </label>
+          </section>
+
+          <section class="sidebar-section">
+            <h2 class="sidebar-heading">Playback</h2>
+            <div class="playback">
+              <label class="speed">
+                Auto-play speed (ms/step)
+                <input type="number" id="input-speed" min="50" max="2000" step="50" value="200" />
+              </label>
+              <div class="btn-row wrap">
+                <button type="button" id="btn-play" class="btn">Play</button>
+                <button type="button" id="btn-pause" class="btn">Pause</button>
+                <button type="button" id="btn-step-back" class="btn">Step back</button>
+                <button type="button" id="btn-step-fwd" class="btn">Step forward</button>
+                <button type="button" id="btn-jump-end" class="btn">Jump to end</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="sidebar-section sidebar-section--last">
+            <h2 class="sidebar-heading">Scenarios</h2>
+            <p class="hint">Scenario set includes FIFO and efficient comparison cases.</p>
+            <div class="btn-row wrap scenario-buttons-wrap" id="scenario-buttons"></div>
+          </section>
+        </div>
+      </aside>
+    </div>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>

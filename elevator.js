@@ -1,9 +1,9 @@
 export default class Elevator {
   constructor() {
+    
+    this.onStep = null
     this.currentFloor = 0
-    /** Total pickup/dropoff stops this session; resets with {@link Elevator#reset}. */
     this.stops = 0
-    /** Total one-floor moves; fewer means a more efficient run for the same work. Resets with {@link Elevator#reset}. */
     this.floorsTraversed = 0
     this.requests = []
     this.riders= []
@@ -19,7 +19,7 @@ export default class Elevator {
     }
   }
 
-  /** Level 7: LOOK-style sweep — pick up any waiting passenger on this floor (not only when cabin is empty); often fewer floors than strict FIFO `dispatch`. */
+  
   dispatchEfficient(){
     let direction = null
 
@@ -80,6 +80,12 @@ export default class Elevator {
     this.requests = remaining
   }
 
+  _notifyStep() {
+    if (typeof this.onStep === 'function') {
+      this.onStep()
+    }
+  }
+
   _moveUpEfficient(){
     this.currentFloor++
     this.floorsTraversed++
@@ -88,6 +94,7 @@ export default class Elevator {
       this._hasPickupEfficient()
       this.hasDropoff()
     }
+    this._notifyStep()
   }
 
   _moveDownEfficient(){
@@ -99,6 +106,7 @@ export default class Elevator {
         this._hasPickupEfficient()
         this.hasDropoff()
       }
+      this._notifyStep()
     }
   }
 
@@ -135,7 +143,8 @@ export default class Elevator {
       this.stops++
       this.hasPickup()
       this.hasDropoff()
-    }    
+    }
+    this._notifyStep()
   }
 
   moveDown(){
@@ -147,6 +156,7 @@ export default class Elevator {
         this.hasPickup()
         this.hasDropoff()
       }
+      this._notifyStep()
     }
   }
 
@@ -173,7 +183,7 @@ export default class Elevator {
     this.riders = this.riders.filter(rider => rider.dropOffFloor !== this.currentFloor)
   }
 
-  /** Wall-clock hour (0–23); override in tests. Level 6: before noon return to lobby when idle; after noon stay at last dropoff. */
+  
   getHour() {
     return new Date().getHours()
   }

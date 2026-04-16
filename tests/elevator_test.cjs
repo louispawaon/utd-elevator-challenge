@@ -103,7 +103,7 @@ describe('Elevator', function() {
     assert.equal(elevator.riders.length, 0)
   })
 
-  describe('Level 5 - Person A before Person B', function() {
+  describe('Person A before Person B', function() {
     const beforeNoon = new Date().getHours() < 12
 
     it('Person A goes up, Person B goes up', () => {
@@ -171,7 +171,7 @@ describe('Elevator', function() {
     })
   })
 
-  describe('Level 4 - Multiple requests in order', function() {
+  describe('Multiple requests in order', function() {
     it('Bob then Sue', () => {
       const bob = new Person('Bob', 3, 9)
       const sue = new Person('Sue', 6, 2)
@@ -188,7 +188,7 @@ describe('Elevator', function() {
     })
   })
 
-  describe('Level 6 - Lobby vs Stay when idle', function() {
+  describe('Lobby vs Stay when idle', function() {
     it('before noon: returns to lobby when idle after a trip', () => {
       elevator.getHour = () => 9
       elevator.checkReturnToLoby = Elevator.prototype.checkReturnToLoby.bind(elevator)
@@ -218,7 +218,7 @@ describe('Elevator', function() {
     })
   })
 
-  describe('Level 7 - Efficiency vs FIFO baseline', function() {
+  describe('Efficiency vs FIFO baseline', function() {
     it('Person A up, B up: dispatchEfficient traverses fewer floors than dispatch', () => {
       elevator.checkReturnToLoby = () => false
       let personA = new Person('Oliver', 3, 6)
@@ -338,7 +338,7 @@ describe('Elevator', function() {
     assert.equal(elevator.riders.length, 0)
   })
 
-  describe('Level 3 - Efficiency metrics', function() {
+  describe('Efficiency metrics', function() {
     it('accumulates floorsTraversed and stops across trips until reset', () => {
       elevator.checkReturnToLoby = () => false
       const first = { name: 'A', currentFloor: 2, dropOffFloor: 5 }

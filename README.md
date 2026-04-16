@@ -1,19 +1,19 @@
 # Elevator Challenge
 
-Exam requirement is upto level 6, but you can work upto level 9 if you want to.
+Exam requirement is upto milestone 6, but you can work upto milestone 9 if you want to.
 
 ## Description
 
-For this challenge, you will be implementing an API for an elevator with JavaScript. While the challenge might seem trivial, you will quickly find out all the nuances of the elevator world and be marveled that they work as well as they do. You cannot move on to the next Level unless you have completed the current Level (or made a valiant effort).
+For this challenge, you will be implementing an API for an elevator with JavaScript. While the challenge might seem trivial, you will quickly find out all the nuances of the elevator world and be marveled that they work as well as they do. You cannot move on to the next Milestone unless you have completed the current Milestone (or made a valiant effort).
 
 We will focus heavily on **TDD** and writing super clean code. We will be considering the following criteria:
 
 - Code Quality
 - Robustness of test suite
 - Efficiency of elevator algorithm
-- Number of Levels completed
+- Number of Milestones completed
 
-When you start a new level, read through the level's specification and write failing (red) tests to satisfy the spec. Then write your implementation code to make the tests pass (green).
+When you start a new milestone, read through the milestone's specification and write failing (red) tests to satisfy the spec. Then write your implementation code to make the tests pass (green).
 
 Clone this repository and run `npm install` to install testing dependencies.
 
@@ -85,6 +85,33 @@ Can you create a more efficient algorithm for pickups and drop offs? Whatever al
 
 Create a DOM representation of the elevator and people to visualize the elevator process.
 
+After `npm install`, run `npm run server` and open **http://localhost:3000** to use the visualization (FIFO vs efficient dispatch, manual requests, and canned scenarios from Milestones 4–7). Static assets and the UI live under [`web-app/public`](web-app/public); the server entry is [`web-app/server/index.js`](web-app/server/index.js).
+
 ### Level 9
 
 Replace all insertions and deletions of requests and current riders with API calls to a Node/Express backend with the correct CRUD methods.
+
+The same `npm run server` app exposes a JSON API (in-memory state):
+
+| Method | Path | Notes |
+|--------|------|--------|
+| `GET` | `/api/requests` | List waiting passengers |
+| `GET` | `/api/requests/:id` | One request |
+| `POST` | `/api/requests` | Body: `{ "name", "currentFloor", "dropOffFloor" }` (integers ≥ 0) |
+| `PUT` / `PATCH` | `/api/requests/:id` | Update fields |
+| `DELETE` | `/api/requests/:id` | Remove one |
+| `DELETE` | `/api/requests` | Clear all requests |
+| `GET` | `/api/riders` | List riders in the car |
+| Same | `/api/riders`… | Same CRUD shape as requests |
+| `POST` | `/api/simulate` | Body: `{ "mode": "fifo" \| "efficient", "useLobbyClock"?: boolean }` — runs the elevator on the server and returns `{ "steps": [ … ] }` timeline snapshots; store is synced to the final snapshot |
+| `POST` | `/api/reset` | Clears requests, riders, and id counters |
+
+Example:
+
+```bash
+curl -s http://localhost:3000/api/requests
+curl -s -X POST http://localhost:3000/api/requests -H 'Content-Type: application/json' \
+  -d '{"name":"Pat","currentFloor":2,"dropOffFloor":5}'
+curl -s -X POST http://localhost:3000/api/simulate -H 'Content-Type: application/json' \
+  -d '{"mode":"fifo","useLobbyClock":false}'
+```
