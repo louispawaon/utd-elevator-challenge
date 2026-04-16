@@ -10,40 +10,8 @@ export default class Elevator {
   }
 
   dispatch(){
-    let direction = null
-
-    const hasFloorsAbove = () => {
-      const requestAbove = this.requests.some(request => request.currentFloor > this.currentFloor)
-      const riderAbove = this.riders.some(rider => rider.dropOffFloor > this.currentFloor)
-      return requestAbove || riderAbove
-    }
-
-    const hasFloorsBelow = () => {
-      const requestBelow = this.requests.some(request => request.currentFloor < this.currentFloor)
-      const riderBelow = this.riders.some(rider => rider.dropOffFloor < this.currentFloor)
-      return requestBelow || riderBelow
-    }
-
-    while (this.requests.length || this.riders.length) {
-      if (!direction) {
-        if (this.riders.length) {
-          direction = this.riders[0].dropOffFloor >= this.currentFloor ? 'up' : 'down'
-        } else if (this.requests.length) {
-          direction = this.requests[0].currentFloor >= this.currentFloor ? 'up' : 'down'
-        }
-      }
-
-      if (direction === 'up' && !hasFloorsAbove() && hasFloorsBelow()) {
-        direction = 'down'
-      } else if (direction === 'down' && !hasFloorsBelow() && hasFloorsAbove()) {
-        direction = 'up'
-      }
-
-      if (direction === 'up') {
-        this.moveUp()
-      } else if (direction === 'down') {
-        this.moveDown()
-      }
+    while (this.requests.length) {
+      this.goToFloor(this.requests[0])
     }
 
     if (this.checkReturnToLoby()) {
@@ -100,17 +68,22 @@ export default class Elevator {
   }
 
   hasStop(){
-    const pickupStop = this.requests.some(request => request.currentFloor === this.currentFloor)
+    const pickupStop =
+      this.riders.length === 0 &&
+      this.requests.length > 0 &&
+      this.requests[0].currentFloor === this.currentFloor
     const dropoffStop = this.riders.some(rider => rider.dropOffFloor === this.currentFloor)
 
     return pickupStop || dropoffStop
   }
 
   hasPickup(){
-    const pickupRequests = this.requests.filter(request => request.currentFloor === this.currentFloor)
-
-    pickupRequests.forEach(request => this.riders.push(request))
-    this.requests = this.requests.filter(request => request.currentFloor !== this.currentFloor)
+    if (this.riders.length) {
+      return
+    }
+    while (this.requests.length && this.requests[0].currentFloor === this.currentFloor) {
+      this.riders.push(this.requests.shift())
+    }
   }
 
   hasDropoff(){
@@ -119,7 +92,7 @@ export default class Elevator {
 
   checkReturnToLoby(){
     const beforeNoon = new Date().getHours() < 12
-    return beforeNoon && !this.riders.length
+    return beforeNoon && !this.riders.length && !this.requests.length
   }
 
   returnToLoby(){
