@@ -217,6 +217,93 @@ describe('Elevator', function() {
       assert.equal(elevator.riders.length, 0)
     })
   })
+
+  describe('Level 7 - Efficiency vs FIFO baseline', function() {
+    it('Person A up, B up: dispatchEfficient traverses fewer floors than dispatch', () => {
+      elevator.checkReturnToLoby = () => false
+      let personA = new Person('Oliver', 3, 6)
+      let personB = new Person('Angela', 1, 5)
+      elevator.requests = [personA, personB]
+      elevator.dispatch()
+      const baselineFloors = elevator.floorsTraversed
+
+      elevator.reset()
+      elevator.checkReturnToLoby = () => false
+      personA = new Person('Oliver', 3, 6)
+      personB = new Person('Angela', 1, 5)
+      elevator.requests = [personA, personB]
+      elevator.dispatchEfficient()
+
+      assert.isBelow(elevator.floorsTraversed, baselineFloors)
+      assert.equal(elevator.stops, 4)
+      assert.equal(elevator.requests.length, 0)
+      assert.equal(elevator.riders.length, 0)
+    })
+
+    it('Person A up, B down: FIFO already hits minimum floors; efficient matches (no stricter path)', () => {
+      elevator.checkReturnToLoby = () => false
+      let personA = new Person('Beverly', 3, 6)
+      let personB = new Person('James', 5, 1)
+      elevator.requests = [personA, personB]
+      elevator.dispatch()
+      const baselineFloors = elevator.floorsTraversed
+
+      elevator.reset()
+      elevator.checkReturnToLoby = () => false
+      personA = new Person('Beverly', 3, 6)
+      personB = new Person('James', 5, 1)
+      elevator.requests = [personA, personB]
+      elevator.dispatchEfficient()
+
+      assert.equal(baselineFloors, 11)
+      assert.equal(elevator.floorsTraversed, 11)
+      assert.equal(elevator.stops, 4)
+      assert.equal(elevator.requests.length, 0)
+      assert.equal(elevator.riders.length, 0)
+    })
+
+    it('Person A down, B up: dispatchEfficient traverses fewer floors than dispatch', () => {
+      elevator.checkReturnToLoby = () => false
+      let personA = new Person('Jeanne', 7, 1)
+      let personB = new Person('Karl', 2, 8)
+      elevator.requests = [personA, personB]
+      elevator.dispatch()
+      const baselineFloors = elevator.floorsTraversed
+
+      elevator.reset()
+      elevator.checkReturnToLoby = () => false
+      personA = new Person('Jeanne', 7, 1)
+      personB = new Person('Karl', 2, 8)
+      elevator.requests = [personA, personB]
+      elevator.dispatchEfficient()
+
+      assert.isBelow(elevator.floorsTraversed, baselineFloors)
+      assert.equal(elevator.stops, 4)
+      assert.equal(elevator.requests.length, 0)
+      assert.equal(elevator.riders.length, 0)
+    })
+
+    it('Person A down, B down: dispatchEfficient traverses fewer floors than dispatch', () => {
+      elevator.checkReturnToLoby = () => false
+      let personA = new Person('Max', 8, 2)
+      let personB = new Person('Charlie', 5, 0)
+      elevator.requests = [personA, personB]
+      elevator.dispatch()
+      const baselineFloors = elevator.floorsTraversed
+
+      elevator.reset()
+      elevator.checkReturnToLoby = () => false
+      personA = new Person('Max', 8, 2)
+      personB = new Person('Charlie', 5, 0)
+      elevator.requests = [personA, personB]
+      elevator.dispatchEfficient()
+
+      assert.isBelow(elevator.floorsTraversed, baselineFloors)
+      assert.equal(elevator.stops, 4)
+      assert.equal(elevator.requests.length, 0)
+      assert.equal(elevator.riders.length, 0)
+    })
+  })
   
   it('should check if the elevator must return to the loby when there are no riders and the time is earlier than 12PM', () => {
     elevator.currentFloor = 5

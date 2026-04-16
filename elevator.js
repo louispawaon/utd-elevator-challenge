@@ -19,6 +19,89 @@ export default class Elevator {
     }
   }
 
+  /** Level 7: LOOK-style sweep — pick up any waiting passenger on this floor (not only when cabin is empty); often fewer floors than strict FIFO `dispatch`. */
+  dispatchEfficient(){
+    let direction = null
+
+    const hasFloorsAbove = () => {
+      const requestAbove = this.requests.some(request => request.currentFloor > this.currentFloor)
+      const riderAbove = this.riders.some(rider => rider.dropOffFloor > this.currentFloor)
+      return requestAbove || riderAbove
+    }
+
+    const hasFloorsBelow = () => {
+      const requestBelow = this.requests.some(request => request.currentFloor < this.currentFloor)
+      const riderBelow = this.riders.some(rider => rider.dropOffFloor < this.currentFloor)
+      return requestBelow || riderBelow
+    }
+
+    while (this.requests.length || this.riders.length) {
+      if (!direction) {
+        if (this.riders.length) {
+          direction = this.riders[0].dropOffFloor >= this.currentFloor ? 'up' : 'down'
+        } else if (this.requests.length) {
+          direction = this.requests[0].currentFloor >= this.currentFloor ? 'up' : 'down'
+        }
+      }
+
+      if (direction === 'up' && !hasFloorsAbove() && hasFloorsBelow()) {
+        direction = 'down'
+      } else if (direction === 'down' && !hasFloorsBelow() && hasFloorsAbove()) {
+        direction = 'up'
+      }
+
+      if (direction === 'up') {
+        this._moveUpEfficient()
+      } else if (direction === 'down') {
+        this._moveDownEfficient()
+      }
+    }
+
+    if (this.checkReturnToLoby()) {
+      this.returnToLoby()
+    }
+  }
+
+  _hasStopEfficient(){
+    const pickupStop = this.requests.some(request => request.currentFloor === this.currentFloor)
+    const dropoffStop = this.riders.some(rider => rider.dropOffFloor === this.currentFloor)
+    return pickupStop || dropoffStop
+  }
+
+  _hasPickupEfficient(){
+    const remaining = []
+    for (const request of this.requests) {
+      if (request.currentFloor === this.currentFloor) {
+        this.riders.push(request)
+      } else {
+        remaining.push(request)
+      }
+    }
+    this.requests = remaining
+  }
+
+  _moveUpEfficient(){
+    this.currentFloor++
+    this.floorsTraversed++
+    if (this._hasStopEfficient()) {
+      this.stops++
+      this._hasPickupEfficient()
+      this.hasDropoff()
+    }
+  }
+
+  _moveDownEfficient(){
+    if (this.currentFloor > 0) {
+      this.currentFloor--
+      this.floorsTraversed++
+      if (this._hasStopEfficient()) {
+        this.stops++
+        this._hasPickupEfficient()
+        this.hasDropoff()
+      }
+    }
+  }
+
   goToFloor(person){  
     while (this.currentFloor < person.currentFloor) {
       this.moveUp()
